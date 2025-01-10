@@ -1,0 +1,14 @@
+.env
+venv
+services_data/test.py
+handlers_data/__pycache__
+middlewares_data/__pycache__
+keyboards_data/__pycache__
+lexicon_data/__pycache__
+services_data/__pycache__
+filters_data/__pycache__
+database_data/__pycache__
+config_data/__pycache__
+main_process.py
+services_data/result.html
+services_data/result.txt

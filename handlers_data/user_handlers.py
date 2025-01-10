@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.filters import Command, CommandStart, StateFilter
 import logging
-from services_data import currency, currency_crypto, bonds
+from services_data import currency, currency_crypto, bonds, eco_stat
 from database_data.database import do_save, check, show_it
 from config_data.config import Config, load_config
 
@@ -42,7 +42,7 @@ async def start_bot_processing(message:Message):
         if check(f'SELECT COUNT(*) FROM {config.db.database_table} WHERE user_id = {message.from_user.id};') == False:
             do_save(some_dict)
         else:
-            print('This user already in database')
+            print(LEXICON['In_database'])
 
 @router.message(F.text == '/help', StateFilter(default_state))
 async def help_bot_processing(message:Message):
@@ -50,7 +50,7 @@ async def help_bot_processing(message:Message):
 
 @router.message(F.text == '/weather', StateFilter(default_state))
 async def weather_bot_processing(message:Message, state: FSMContext):
-    await message.answer(text='Введите название города', reply_markup=keyboard_reply)
+    await message.answer(text=LEXICON['entry'], reply_markup=keyboard_reply)
     await state.set_state(FSMFillWeather.weather)
 
 
@@ -93,18 +93,24 @@ async def current_bot_processing(message:Message):
     result['source'], \
     '\n'.join([f'{i}: {k}' for i, k in result['quotes'].items()])
     await message.answer(text=f'{dt.fromtimestamp(time)}\n'
-                         f'target: {target}\n'
+                         f'{LEXICON["target"]}: {target}\n'
                          f'{quotes}')
-    
-@router.message(F.text == '/quotes', StateFilter(default_state))
-async def quotes_bot_processing(message:Message, state:FSMContext):
+
+
+@router.message(F.text == '/crypto', StateFilter(default_state))
+async def quotes_bot_processing(message:Message):
     result = currency_crypto.do_request_cry()
     time, target,  quotes = result['timestamp'], \
     result['target'], \
     '\n'.join([f'{i}: {k}' for i, k in result['rates'].items()])
     await message.answer(text=f'{dt.fromtimestamp(time)}\n'
-                         f'target: {target}\n'
+                         f'{LEXICON["target"]}: {target}\n'
                          f'{quotes}')
+
+
+
+@router.message(F.text == '/quotes', StateFilter(default_state))
+async def quotes_bot_processing(message:Message, state:FSMContext):
     await state.set_state(FSMFillQuotes.quotes)
     await message.answer(text=LEXICON['quot_wait'], reply_markup=keyboard_reply)
 
@@ -120,8 +126,13 @@ async def quotes_state_bot_processing(message:Message, state: FSMContext):
             result = exemplar.show_it(message.text.upper())
             company = result[0]
             last = [(i, k) for i, k in result[1].items() if i == max(result[1])][0]
-            await message.answer(text=f'Company name: {company}\n'
-                                 f'{last}',
+            date_ = last[0]
+            data_0_ = last[1]['1. open']
+            data_1_ = last[1]['4. close']
+            await message.answer(text=f'{LEXICON["comp_tk"]}: {company}\n'
+                                 f'Дата: {date_}\n'
+                                 f'Старт: {data_0_}\n'
+                                 f'Закрытие: {data_1_}',
                                 reply_markup=keyboard_reply)
     except(KeyError) as err:
         print(err)
@@ -132,4 +143,6 @@ async def quotes_state_bot_processing(message:Message, state: FSMContext):
 
 @router.message(F.text == '/eco_stat', StateFilter(default_state))
 async def eco_stat_processing(message:Message):
-    await message.answer()
+    some_data_ = eco_stat.Eco_data()
+    result_ = some_data_.give_data()
+    await message.answer(text=result_)

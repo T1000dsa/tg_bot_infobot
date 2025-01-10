@@ -54,7 +54,7 @@ async def main():
     dp.include_router(user_handlers.router)
     dp.include_router(other_handlers.router)
 
-    dp.update.outer_middleware(SimpleMiddle())
+    #dp.update.outer_middleware(SimpleMiddle())
 
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
